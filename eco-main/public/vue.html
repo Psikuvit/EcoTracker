@@ -16,7 +16,7 @@
 
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(rgba(179, 174, 174, 0.5), rgba(240, 236, 236, 0.5)), url('font.jpg');
+            background: linear-gradient(rgba(179, 174, 174, 0.5), rgba(240, 236, 236, 0.5)), url('./Forest.png');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -47,7 +47,7 @@
 
         .title {
             text-align: center;
-            font-size: 32px;
+            font-size: 3vw;
             font-weight: bold;
             margin-bottom: 2.5vw;
             color: black;
@@ -131,6 +131,7 @@
         }
 
         .place-card {
+            position: relative;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
             overflow: hidden;
@@ -159,6 +160,14 @@
         .place-info {
             padding: 15px;
             color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .place-text-content {
+            flex-grow: 1;
         }
 
         .place-location {
@@ -172,113 +181,37 @@
             width: 16px;
             height: 16px;
             fill: #ef4444;
+            flex-shrink: 0;
+        }
+        
+        .place-description {
+            margin-top: 8px;
+            color: #666;
+            font-size: 14px;
         }
 
-        .add-place-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: #4ade80;
-            color: white;
-            border: none;
+        .card-add-btn {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
+            border: 1px solid #ddd;
+            background-color: #f0f0f0;
+            color: #22c55e;
             font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(74, 222, 128, 0.4);
-            transition: all 0.3s;
-        }
-
-        .add-place-btn:hover {
-            background: #22c55e;
-            transform: scale(1.1);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-        }
-
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 500px;
-            color: #333;
-        }
-
-        .modal h3 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
             font-weight: bold;
-        }
-
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .form-group input:focus, .form-group textarea:focus {
-            border-color: #4ade80;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.3s;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .btn-primary {
-            background: #4ade80;
+        .card-add-btn:hover {
+            background-color: #22c55e;
             color: white;
-        }
-
-        .btn-primary:hover {
-            background: #22c55e;
-        }
-
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #4b5563;
+            transform: scale(1.1);
+            border-color: #22c55e;
         }
 
         .delete-btn {
@@ -296,6 +229,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 2;
         }
 
         .delete-btn:hover {
@@ -325,30 +259,6 @@
 
     </div>
 
-    <div class="modal" id="addPlaceModal">
-        <div class="modal-content">
-            <h3>Ajouter un nouveau lieu à nettoyer</h3>
-            <form id="addPlaceForm">
-                <div class="form-group">
-                    <label for="placeName">Nom du lieu :</label>
-                    <input type="text" id="placeName" required>
-                </div>
-                <div class="form-group">
-                    <label for="placeLocation">Localisation :</label>
-                    <input type="text" id="placeLocation" required>
-                </div>
-                <div class="form-group">
-                    <label for="placeDescription">Description :</label>
-                    <textarea id="placeDescription" rows="3"></textarea>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
-                    <button type="submit" class="btn btn-primary">Ajouter</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
         let places = [
             { id: 1, name: "Zone 1", location: "Borj el bahri", description: "Zone nécessitant un nettoyage urgent" },
@@ -372,15 +282,16 @@
                     <button class="delete-btn" onclick="deletePlace(${place.id})" title="Supprimer">×</button>
                     <div class="place-image">Image</div>
                     <div class="place-info">
-                        <div class="place-location">
-                            <svg class="location-icon" viewBox="0 0 24 24">
-                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                            </svg>
-                            ${place.location}
+                        <div class="place-text-content">
+                            <div class="place-location">
+                                <svg class="location-icon" viewBox="0 0 24 24">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                </svg>
+                                ${place.location}
+                            </div>
+                            <div class="place-description">${place.description}</div>
                         </div>
-                        <div style="margin-top: 8px; color: #666; font-size: 14px;">
-                            ${place.description}
-                        </div>
+                        <button class="card-add-btn" title="Participer">+</button>
                     </div>
                 `;
                 grid.appendChild(placeCard);
@@ -403,15 +314,6 @@
             renderPlaces();
         }
 
-        function openModal() {
-            document.getElementById('addPlaceModal').style.display = 'block';
-        }
-
-        function closeModal() {
-            document.getElementById('addPlaceModal').style.display = 'none';
-            document.getElementById('addPlaceForm').reset();
-        }
-
         function deletePlace(id) {
             if (confirm('Êtes-vous sûr de vouloir supprimer ce lieu ?')) {
                 places = places.filter(place => place.id !== id);
@@ -420,33 +322,10 @@
             }
         }
 
-        document.getElementById('addPlaceForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const newPlace = {
-                id: Date.now(),
-                name: document.getElementById('placeName').value,
-                location: document.getElementById('placeLocation').value,
-                description: document.getElementById('placeDescription').value
-            };
-
-            places.push(newPlace);
-            filteredPlaces = [...places];
-            renderPlaces();
-            closeModal();
-        });
-
         document.getElementById('searchInput').addEventListener('input', searchPlaces);
-
-        // Fermer le modal en cliquant en dehors
-        document.getElementById('addPlaceModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
 
         renderPlaces();
     </script>
 </body>
-
 </html>
+
