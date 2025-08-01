@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Location</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #A5D6A7 0%, #66BB6A 50%,#388E3C 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Tree silhouettes background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                /* Tree silhouettes */
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800'%3E%3Cg fill='rgba(255,255,255,0.1)'%3E%3Cpath d='M50 700c0-20 10-40 25-50 15-10 35-5 50 0 20 8 40 20 35 45-3 15-15 25-30 30-20 5-45 0-60-10-10-8-20-15-20-15z'/%3E%3Cpath d='M70 650c15-25 35-45 60-50 25-5 50 5 60 25 8 15 5 35-5 50-12 18-30 30-50 25-25-5-45-25-50-40-3-10-15-10-15-10z'/%3E%3Cpath d='M80 600c20-30 50-50 80-45 30 5 50 25 45 50-3 20-20 35-40 40-25 5-50-5-65-20-15-15-20-25-20-25z'/%3E%3Cpath d='M200 720c0-15 8-30 20-40 12-8 28-4 40 0 16 6 32 16 28 36-2 12-12 20-24 24-16 4-36 0-48-8-8-6-16-12-16-12z'/%3E%3Cpath d='M215 680c12-20 28-36 48-40 20-4 40 4 48 20 6 12 4 28-4 40-10 14-24 24-40 20-20-4-36-20-40-32-2-8-12-8-12-8z'/%3E%3Cpath d='M900 710c0-18 9-36 22-45 13-9 31-4 45 0 18 7 36 18 32 41-3 14-14 23-27 27-18 4-41 0-54-9-9-7-18-14-18-14z'/%3E%3Cpath d='M920 670c14-23 32-41 54-45 23-4 45 4 54 23 7 14 4 32-4 45-11 16-27 27-45 23-23-4-41-23-45-36-3-9-14-9-14-10z'/%3E%3Cpath d='M930 620c18-27 45-45 72-41 27 4 45 23 41 45-3 18-18 32-36 36-23 4-45-4-59-18-14-14-18-22-18-22z'/%3E%3C/g%3E%3C/svg%3E"),
+                /* Subtle light patterns */
+                radial-gradient(circle at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 20%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 30%),
+                radial-gradient(circle at 40% 80%, rgba(255,255,255,0.04) 0%, transparent 25%);
+            background-size: 100% 100%, 300px 300px, 400px 400px, 350px 350px;
+            background-position: center, 0% 100%, 100% 0%, 50% 100%;
+            background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-title {
+            text-align: center;
+            color: #2d5016;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            letter-spacing: -0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            color: #666;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #6db65b;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #4a9341;
+            box-shadow: 0 0 0 3px rgba(109, 182, 91, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .form-input::placeholder {
+            color: #999;
+            font-style: italic;
+        }
+
+        .image-upload {
+            position: relative;
+            border: 2px dashed #6db65b;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            background: rgba(109, 182, 91, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .image-upload:hover {
+            border-color: #4a9341;
+            background: rgba(109, 182, 91, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .image-upload.dragover {
+            border-color: #4a9341;
+            background: rgba(109, 182, 91, 0.15);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #6db65b;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #6db65b 0%, #4a9341 100%);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(109, 182, 91, 0.4);
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .preview-container {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-name {
+            color: #4a9341;
+            font-size: 14px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .form-title {
+                font-size: 24px;
+            }
+        }
+        /* Input field styling */
+        #locationLink,
+        #name,
+        #phone,
+        #nationalId,
+        #age {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #6db65b;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s ease;
+            outline: none;
+            margin-bottom: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        /* Focus state */
+        #locationLink:focus,
+        #name:focus,
+        #phone:focus,
+        #nationalId:focus,
+        #age:focus {
+            border-color: #4a9341;
+            box-shadow: 0 0 0 3px rgba(109, 182, 91, 0.2);
+            transform: translateY(-2px);
+        }
+        /* Placeholder styling */
+        #locationLink::placeholder,
+        #name::placeholder,
+
+        #phone::placeholder,
+
+        #nationalId::placeholder,
+        #age::placeholder {
+            color: #999;
+            font-style: italic;
+            opacity: 1;
+        }
+        /* Hover effect */
+        #locationLink:hover,
+        #name:hover,
+        #phone:hover,
+        #nationalId:hover,
+        #age:hover {
+            border-color: #5ba84c;
+            box-shadow: 0 2px 8px rgba(109, 182, 91, 0.1);
+        }
+
+        /* Valid state (optional) */
+        #locationLink:valid,
+        #name:valid,
+        #phone:valid,
+        #nationalId:valid,
+        #age:valid {
+            border-color: #4a9341;
+        }
+        /* Invalid state styling */
+        #locationLink:invalid:not(:placeholder-shown),
+        #name:invalid:not(:placeholder-shown),
+        #phone:invalid:not(:placeholder-shown),
+        #nationalId:invalid:not(:placeholder-shown),
+        #age:invalid:not(:placeholder-shown) {
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+        }
+
+        /* Disabled state (if needed) */
+        #locationLink:disabled,
+        #name:disabled,
+        #phone:disabled,
+        #nationalId:disabled,
+        #age:disabled {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        /* Container for form groups (optional) */
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        /* Label styling (if you want to add labels) */
+        .form-label {
+            display: block;
+            color: #666;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Error message styling (optional) */
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* Show error message when input is invalid */
+        #locationLink:not(:placeholder-shown):invalid + .error-message,
+        #name:invalid:not(:placeholder-shown) + .error-message,
+        #phone:invalid:not(:placeholder-shown) + .error-message,
+        #nationalId:invalid:not(:placeholder-shown) + .error-message,
+        #age:invalid:not(:placeholder-shown) + .error-message {
+            display: block;
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            #name,
+            #phone,
+            #nationalId,
+            #age {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+        }
+        /* Number input specific styling */
+        #age::-webkit-outer-spin-button,
+        #age::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;}
+
+ 
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1 class="form-title">Submit Location</h1>
+        
+        <form id="locationForm">
+            <div class="form-group">
+                <label class="form-label">Location link</label>
+                <input 
+                    type="url" 
+                    class="form-input" 
+                    id="locationLink" 
+                    placeholder="Paste link here"
+                    required
+                >
+                <input type="text" id="name" placeholder="Enter name" required>
+                <input type="text" id="phone" placeholder="Enter phone number" required>
+                <input type="text" id="nationalId" placeholder="Enter national ID" required>
+                <input type="number" id="age" placeholder="Enter age" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Image</label>
+                <div class="image-upload" id="imageUpload">
+                    <span class="upload-icon">📁</span>
+                    <div class="upload-text">Click to upload or drag and drop</div>
+                    <div class="upload-subtext">PNG, JPG, GIF up to 10MB</div>
+                    <input 
+                        type="file" 
+                        class="file-input" 
+                        id="imageFile" 
+                        accept="image/*"
+                    >
+                </div>
+                <div class="preview-container" id="previewContainer"></div>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        const imageUpload = document.getElementById('imageUpload');
+        const fileInput = document.getElementById('imageFile');
+        const previewContainer = document.getElementById('previewContainer');
+        const form = document.getElementById('locationForm');
+
+        
+        fileInput.addEventListener('change', handleFileSelect)
+
+        imageUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageUpload.classList.add('dragover');
+        });
+
+        imageUpload.addEventListener('dragleave', () => {
+            imageUpload.classList.remove('dragover');
+        });
+
+        imageUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageUpload.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        });
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (file) {
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewContainer.innerHTML = `
+                        <img src="${e.target.result}" class="preview-image" alt="Preview">
+                        <div class="file-name">${file.name}</div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        
+        
+    </script>
+</body>
+</html>
