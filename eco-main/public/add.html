@@ -222,7 +222,7 @@
         /* Input field styling */
         #locationLink,
         #name,
-        #phone,
+        #description,
         #nationalId,
         #age {
             width: 100%;
@@ -240,7 +240,7 @@
         /* Focus state */
         #locationLink:focus,
         #name:focus,
-        #phone:focus,
+        #description:focus,
         #nationalId:focus,
         #age:focus {
             border-color: #4a9341;
@@ -251,7 +251,7 @@
         #locationLink::placeholder,
         #name::placeholder,
 
-        #phone::placeholder,
+        #description::placeholder,
 
         #nationalId::placeholder,
         #age::placeholder {
@@ -262,7 +262,7 @@
         /* Hover effect */
         #locationLink:hover,
         #name:hover,
-        #phone:hover,
+        #description:hover,
         #nationalId:hover,
         #age:hover {
             border-color: #5ba84c;
@@ -272,7 +272,7 @@
         /* Valid state (optional) */
         #locationLink:valid,
         #name:valid,
-        #phone:valid,
+        #description:valid,
         #nationalId:valid,
         #age:valid {
             border-color: #4a9341;
@@ -280,7 +280,7 @@
         /* Invalid state styling */
         #locationLink:invalid:not(:placeholder-shown),
         #name:invalid:not(:placeholder-shown),
-        #phone:invalid:not(:placeholder-shown),
+        #description:invalid:not(:placeholder-shown),
         #nationalId:invalid:not(:placeholder-shown),
         #age:invalid:not(:placeholder-shown) {
             border-color: #e74c3c;
@@ -290,9 +290,8 @@
         /* Disabled state (if needed) */
         #locationLink:disabled,
         #name:disabled,
-        #phone:disabled,
-        #nationalId:disabled,
-        #age:disabled {
+        #description:disabled,
+        :disabled {
             background-color: #f8f9fa;
             border-color: #dee2e6;
             color: #6c757d;
@@ -363,11 +362,11 @@
                     id="locationLink" 
                     placeholder="Paste link here"
                     required
-                >
-                <input type="text" id="name" placeholder="Enter name" required>
-                <input type="text" id="phone" placeholder="Enter phone number" required>
-                <input type="text" id="nationalId" placeholder="Enter national ID" required>
-                <input type="number" id="age" placeholder="Enter age" required>
+                >    
+            
+                <input type="text" id="name" placeholder="Enter place name" required>
+                <input type="text" id="description" placeholder="Enter description" required>
+                
             </div>
 
             <div class="form-group">
@@ -437,4 +436,5 @@
         
     </script>
 </body>
+
 </html>
