@@ -40,16 +40,6 @@ if (!process.env.MONGODB_URI) {
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/eco_admin_db';
 console.log('Using MongoDB URI:', mongoUri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')); // Hide credentials in logs
 
-// Improved connection options for serverless environments
-const mongooseOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-  maxPoolSize: 10, // Maintain up to 10 socket connections
-  bufferMaxEntries: 0, // Disable mongoose buffering
-  bufferCommands: false, // Disable mongoose buffering
-};
 
 mongoose.connect(mongoUri, mongooseOptions)
 .then(() => {
@@ -223,8 +213,6 @@ app.post('/api/submit-location', upload.single('image'), async (req, res) => {
         useUnifiedTopology: true,
         serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 45000,
-        bufferMaxEntries: 0,
-        bufferCommands: false,
       });
     }
     
@@ -466,10 +454,6 @@ app.get('/api/location/:locationId/users', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch location users' });
   }
 });
-
-
-
-
 
 // Approve a location
 app.post('/api/admin/approve/:locationId', async (req, res) => {
