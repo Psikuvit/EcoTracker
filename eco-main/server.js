@@ -15,12 +15,13 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(uploadsDir));
 app.use(express.static('public'));
 
-// Create uploads directory if it doesn't exist
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads');
+// Create uploads directory if it doesn't exist (for local development)
+const uploadsDir = process.env.NODE_ENV === 'production' ? '/tmp/uploads' : 'uploads';
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // MongoDB Connection
@@ -134,7 +135,7 @@ app.post('/validate-admin-key', (req, res) => {
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -506,12 +507,14 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🗄️  MongoDB URI: ${process.env.MONGODB_URI || 'mongodb://localhost:27017/eco_admin_db'}`);
-  console.log(`🌐 External API: ${process.env.EXTERNAL_API_URL || 'https://httpbin.org/post (fallback)'}`);
-});
+// Start server (only for local development)
+if (process.env.NODE_ENV !== 'production' && require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🗄️  MongoDB URI: ${process.env.MONGODB_URI || 'mongodb://localhost:27017/eco_admin_db'}`);
+    console.log(`🌐 External API: ${process.env.EXTERNAL_API_URL || 'https://httpbin.org/post (fallback)'}`);
+  });
+}
 
 module.exports = app;
