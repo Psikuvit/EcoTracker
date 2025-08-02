@@ -27,12 +27,21 @@ app.use('/uploads', express.static(uploadsDir));
 app.use(express.static('public'));
 
 // MongoDB Connection
+console.log('Attempting to connect to MongoDB...');
+console.log('MongoDB URI:', process.env.MONGODB_URI ? 'Set (length: ' + process.env.MONGODB_URI.length + ')' : 'Not set');
+
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/eco_admin_db', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+.then(() => {
+  console.log('✅ Connected to MongoDB successfully');
+  console.log('Database name:', mongoose.connection.name);
+})
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err);
+  console.error('Error details:', err.message);
+});
 
 // MongoDB Schema for Locations
 const LocationSchema = new mongoose.Schema({
@@ -168,11 +177,23 @@ const upload = multer({
 // Submit a new location
 app.post('/api/submit-location', upload.single('image'), async (req, res) => {
   try {
+    console.log('Request body:', req.body);
+    console.log('File:', req.file);
+    
     const { name, description, link } = req.body;
 
+    // Validate input fields
+    if (!name || !description || !link) {
+      console.log('Missing required fields:', { name: !!name, description: !!description, link: !!link });
+      return res.status(400).json({ error: 'Name, description, and link are required' });
+    }
+
     if (!req.file) {
+      console.log('No file uploaded');
       return res.status(400).json({ error: 'Image file is required' });
     }
+
+    console.log('Creating location with data:', { name, description, link, imagePath: req.file.path });
 
     // Create new location in database
     const newLocation = new Location({
@@ -183,7 +204,9 @@ app.post('/api/submit-location', upload.single('image'), async (req, res) => {
       imageUrl: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
     });
 
+    console.log('Attempting to save location to database...');
     const savedLocation = await newLocation.save();
+    console.log('Location saved successfully:', savedLocation._id);
 
     res.status(201).json({
       success: true,
@@ -194,7 +217,8 @@ app.post('/api/submit-location', upload.single('image'), async (req, res) => {
 
   } catch (error) {
     console.error('Error submitting location:', error);
-    res.status(500).json({ error: 'Failed to submit location' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to submit location: ' + error.message });
   }
 });
 
@@ -488,7 +512,9 @@ app.get('/api/health', (req, res) => {
     success: true,
     message: 'Server is running',
     timestamp: new Date(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    mongoConnection: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+    uploadsDir: uploadsDir
   });
 });
 
