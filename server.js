@@ -93,7 +93,11 @@ const LocationSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
-  imagePath: {
+  imageData: {
+    type: String, 
+    required: true
+  },
+  imageMimetype: {
     type: String,
     required: true
   },
@@ -138,7 +142,11 @@ const UserSchema = new mongoose.Schema({
     ref: 'Location',
     required: true
   },
-  imagePath: {
+  imageData: {
+    type: String,
+    required: true
+  },
+  imageMimetype: {
     type: String,
     required: true
   },
@@ -174,16 +182,7 @@ app.post('/validate-admin-key', (req, res) => {
     }
 });
 
-// Multer configuration for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage: storage,
@@ -242,15 +241,20 @@ app.post('/api/submit-location', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'Image file is required' });
     }
 
-    console.log('Creating location with data:', { name, description, link, imagePath: req.file.path });
+    console.log('Creating location with data:', { name, description, link, fileSize: req.file.size, mimetype: req.file.mimetype });
+
+    // Convert image buffer to base64
+    const imageBase64 = req.file.buffer.toString('base64');
+    const imageUrl = `data:${req.file.mimetype};base64,${imageBase64}`;
 
     // Create new location in database
     const newLocation = new Location({
       name,
       description,
       link,
-      imagePath: req.file.path,
-      imageUrl: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+      imageData: imageBase64,
+      imageMimetype: req.file.mimetype,
+      imageUrl: imageUrl
     });
 
     console.log('Attempting to save location to database...');
@@ -366,6 +370,10 @@ app.post('/api/submit-user', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'Can only join approved locations' });
     }
 
+    // Convert image buffer to base64
+    const imageBase64 = req.file.buffer.toString('base64');
+    const imageUrl = `data:${req.file.mimetype};base64,${imageBase64}`;
+
     // Create new user
     const newUser = new User({
       fullName,
@@ -374,8 +382,9 @@ app.post('/api/submit-user', upload.single('image'), async (req, res) => {
       phone,
       address,
       locationId,
-      imagePath: req.file.path,
-      imageUrl: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+      imageData: imageBase64,
+      imageMimetype: req.file.mimetype,
+      imageUrl: imageUrl
     });
 
     const savedUser = await newUser.save();
@@ -573,6 +582,33 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Serve image from database
+app.get('/api/image/:locationId', async (req, res) => {
+  try {
+    const { locationId } = req.params;
+    const location = await Location.findById(locationId);
+    
+    if (!location || !location.imageData) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+    
+    // Convert base64 back to buffer
+    const imageBuffer = Buffer.from(location.imageData, 'base64');
+    
+    // Set appropriate headers
+    res.set({
+      'Content-Type': location.imageMimetype,
+      'Content-Length': imageBuffer.length,
+      'Cache-Control': 'public, max-age=86400' // Cache for 1 day
+    });
+    
+    res.send(imageBuffer);
+  } catch (error) {
+    console.error('Error serving image:', error);
+    res.status(500).json({ error: 'Failed to serve image' });
+  }
+});
+
 // Root route - serve index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -599,7 +635,6 @@ app.use('/validate-admin-key', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// For all other routes, let Vercel handle static files
 // Don't add a catch-all 404 handler here for Vercel compatibility
 
 // Start server (only for local development)
