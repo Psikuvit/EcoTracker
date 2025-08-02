@@ -802,8 +802,8 @@
         <section class="hero" id="hero">
             <h1>Stay Update On Waste<br>Management</h1>
             <p>Welcome to this newsletter to be latest updates on the smart city waste management initiatives<br>that works.</p>
-            <button class="btn btn-start" href="vue.html">view places</button>
-            <button class="btn btn-start" href="addPlace.html">add places</button>
+            <button class="btn btn-start" id="viewPlacesBtn">view places</button>
+            <button class="btn btn-start" id="addPlacesBtn">add places</button>
         </section>
 
         <!-- Decorative Trees -->
@@ -1030,7 +1030,15 @@
             messageDiv.classList.remove('show');
         }
         showSuccess('Welcome to Lager! Stay tuned for updates on waste management initiatives.');
-        fetch()
+        
+        // Add click handlers for navigation buttons
+        document.getElementById('viewPlacesBtn').addEventListener('click', function() {
+            window.location.href = 'vue.html';
+        });
+        
+        document.getElementById('addPlacesBtn').addEventListener('click', function() {
+            window.location.href = 'addPlace.html';
+        });
     </script>
 </body>
 </html>
