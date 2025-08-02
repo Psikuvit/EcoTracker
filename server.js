@@ -29,6 +29,16 @@ app.use(express.static('public'));
 // MongoDB Connection
 console.log('Attempting to connect to MongoDB...');
 console.log('MongoDB URI:', process.env.MONGODB_URI ? 'Set (length: ' + process.env.MONGODB_URI.length + ')' : 'Not set');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
+// Check if MongoDB URI is available
+if (!process.env.MONGODB_URI) {
+  console.error('❌ MONGODB_URI environment variable is not set!');
+  console.error('Available environment variables:', Object.keys(process.env).filter(key => key.includes('MONGO') || key.includes('DB')));
+}
+
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/eco_admin_db';
+console.log('Using MongoDB URI:', mongoUri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')); // Hide credentials in logs
 
 // Improved connection options for serverless environments
 const mongooseOptions = {
@@ -41,7 +51,7 @@ const mongooseOptions = {
   bufferCommands: false, // Disable mongoose buffering
 };
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/eco_admin_db', mongooseOptions)
+mongoose.connect(mongoUri, mongooseOptions)
 .then(() => {
   console.log('✅ Connected to MongoDB successfully');
   console.log('Database name:', mongoose.connection.name);
@@ -205,7 +215,11 @@ app.post('/api/submit-location', upload.single('image'), async (req, res) => {
     // Check if MongoDB is connected
     if (mongoose.connection.readyState !== 1) {
       console.log('MongoDB not connected, attempting to connect...');
-      await mongoose.connect(process.env.MONGODB_URI, {
+      const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/eco_admin_db';
+      if (!mongoUri || mongoUri === 'undefined') {
+        throw new Error('MongoDB URI is not configured properly');
+      }
+      await mongoose.connect(mongoUri, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
         serverSelectionTimeoutMS: 5000,
