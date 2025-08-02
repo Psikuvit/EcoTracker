@@ -40,6 +40,13 @@ if (!process.env.MONGODB_URI) {
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/eco_admin_db';
 console.log('Using MongoDB URI:', mongoUri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')); // Hide credentials in logs
 
+// Configure mongoose options for serverless environment
+const mongooseOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+};
 
 mongoose.connect(mongoUri, mongooseOptions)
 .then(() => {
