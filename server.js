@@ -30,10 +30,18 @@ app.use(express.static('public'));
 console.log('Attempting to connect to MongoDB...');
 console.log('MongoDB URI:', process.env.MONGODB_URI ? 'Set (length: ' + process.env.MONGODB_URI.length + ')' : 'Not set');
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/eco_admin_db', {
+// Improved connection options for serverless environments
+const mongooseOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-})
+  serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+  maxPoolSize: 10, // Maintain up to 10 socket connections
+  bufferMaxEntries: 0, // Disable mongoose buffering
+  bufferCommands: false, // Disable mongoose buffering
+};
+
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/eco_admin_db', mongooseOptions)
 .then(() => {
   console.log('✅ Connected to MongoDB successfully');
   console.log('Database name:', mongoose.connection.name);
@@ -41,6 +49,19 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/eco_admin
 .catch(err => {
   console.error('❌ MongoDB connection error:', err);
   console.error('Error details:', err.message);
+});
+
+// Handle connection events
+mongoose.connection.on('connected', () => {
+  console.log('Mongoose connected to MongoDB');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('Mongoose connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('Mongoose disconnected from MongoDB');
 });
 
 // MongoDB Schema for Locations
@@ -179,6 +200,20 @@ app.post('/api/submit-location', upload.single('image'), async (req, res) => {
   try {
     console.log('Request body:', req.body);
     console.log('File:', req.file);
+    console.log('MongoDB connection state:', mongoose.connection.readyState);
+    
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState !== 1) {
+      console.log('MongoDB not connected, attempting to connect...');
+      await mongoose.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        bufferMaxEntries: 0,
+        bufferCommands: false,
+      });
+    }
     
     const { name, description, link } = req.body;
 
@@ -218,6 +253,12 @@ app.post('/api/submit-location', upload.single('image'), async (req, res) => {
   } catch (error) {
     console.error('Error submitting location:', error);
     console.error('Error stack:', error.stack);
+    
+    // Handle specific MongoDB timeout errors
+    if (error.message.includes('buffering timed out') || error.message.includes('Server selection timed out')) {
+      return res.status(503).json({ error: 'Database connection timeout. Please try again in a moment.' });
+    }
+    
     res.status(500).json({ error: 'Failed to submit location: ' + error.message });
   }
 });
