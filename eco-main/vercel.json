@@ -4,10 +4,6 @@
     {
       "src": "api/index.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "public/**/*",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -22,38 +18,6 @@
     {
       "src": "/uploads/(.*)",
       "dest": "/api/index.js"
-    },
-    {
-      "src": "/admin.html",
-      "dest": "/public/admin.html"
-    },
-    {
-      "src": "/users.html",
-      "dest": "/public/users.html"
-    },
-    {
-      "src": "/submit.html",
-      "dest": "/public/submit.html"
-    },
-    {
-      "src": "/addPlace.html",
-      "dest": "/public/addPlace.html"
-    },
-    {
-      "src": "/addUser.html",
-      "dest": "/public/addUser.html"
-    },
-    {
-      "src": "/vue.html",
-      "dest": "/public/vue.html"
-    },
-    {
-      "src": "/",
-      "dest": "/public/index.html"
-    },
-    {
-      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg))",
-      "dest": "/public/$1"
     },
     {
       "src": "/(.*)",
