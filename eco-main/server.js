@@ -15,14 +15,16 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static(uploadsDir));
-app.use(express.static('public'));
 
 // Create uploads directory if it doesn't exist (for local development)
 const uploadsDir = process.env.NODE_ENV === 'production' ? '/tmp/uploads' : 'uploads';
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
+
+// Static file serving
+app.use('/uploads', express.static(uploadsDir));
+app.use(express.static('public'));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/eco_admin_db', {
@@ -502,10 +504,17 @@ app.use((error, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
+// 404 handler - only for API routes, not static files
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ error: 'API route not found' });
+});
+
+app.use('/validate-admin-key', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
+
+// For all other routes, let Vercel handle static files
+// Don't add a catch-all 404 handler here for Vercel compatibility
 
 // Start server (only for local development)
 if (process.env.NODE_ENV !== 'production' && require.main === module) {
