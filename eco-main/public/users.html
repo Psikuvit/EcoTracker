@@ -272,38 +272,127 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- User Key Access -->
+    <div id="keyInputContainer" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #2E7D32, #66BB6A);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    ">
+        <div style="
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        ">
+            <h2 style="color: #2E7D32; margin-bottom: 1rem;">🔐 User Access</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">Enter the access key to view users</p>
+            <input type="password" id="userKeyInput" placeholder="Enter access key" style="
+                width: 100%;
+                padding: 0.75rem;
+                border: 2px solid #ddd;
+                border-radius: 5px;
+                font-size: 1rem;
+                margin-bottom: 1rem;
+                box-sizing: border-box;
+            ">
+            <button onclick="validateUserKey()" style="
+                background: #2E7D32;
+                color: white;
+                border: none;
+                padding: 0.75rem 2rem;
+                border-radius: 5px;
+                font-size: 1rem;
+                cursor: pointer;
+                width: 100%;
+            ">Access User Dashboard</button>
+            <div id="userErrorMessage" style="
+                color: #d32f2f;
+                margin-top: 1rem;
+                display: none;
+            ">Invalid access key. Please try again.</div>
+        </div>
+    </div>
+
+    <script>
+        async function validateUserKey() {
+            const key = document.getElementById('userKeyInput').value;
+            const errorDiv = document.getElementById('userErrorMessage');
+            
+            if (!key) {
+                errorDiv.textContent = 'Please enter an access key';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch('/validate-admin-key', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ key: key })
+                });
+
+                const result = await response.json();
+
+                if (result.valid) {
+                    // Hide the key input container
+                    document.getElementById('keyInputContainer').style.display = 'none';
+                    // Show the user content
+                    document.getElementById('userContent').style.display = 'block';
+                    loadData();
+                } else {
+                    errorDiv.textContent = 'Invalid access key. Please try again.';
+                    errorDiv.style.display = 'block';
+                    document.getElementById('userKeyInput').value = '';
+                }
+            } catch (error) {
+                console.error('Error validating key:', error);
+                errorDiv.textContent = 'Error validating key. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('userKeyInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                validateUserKey();
+            }
+        });
+    </script>
+
+    <div class="container" id="userContent" style="display: none;">
         <div class="header">
-            <h1>👥 View All Users</h1>
-            <p>Browse and manage user applications</p>
+            <h1>👥 View All Locations & Users</h1>
+            <p>Browse and manage locations with their user applications</p>
         </div>
 
         <div class="stats" id="stats">
             <div class="stat-card">
+                <div class="stat-number" id="totalLocations">0</div>
+                <div class="stat-label">Total Locations</div>
+            </div>
+            <div class="stat-card">
                 <div class="stat-number" id="totalUsers">0</div>
                 <div class="stat-label">Total Users</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="pendingUsers">0</div>
-                <div class="stat-label">Pending Approval</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="approvedUsers">0</div>
-                <div class="stat-label">Approved</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="rejectedUsers">0</div>
-                <div class="stat-label">Rejected</div>
             </div>
         </div>
 
         <div class="filters">
-            <input type="text" class="search-box" id="searchBox" placeholder="Search users by name, email, or status...">
+            <input type="text" class="search-box" id="searchBox" placeholder="Search locations or users...">
             <div class="filter-buttons">
-                <button class="filter-btn active" data-filter="all">All Users</button>
-                <button class="filter-btn" data-filter="pending">Pending</button>
-                <button class="filter-btn" data-filter="approved">Approved</button>
-                <button class="filter-btn" data-filter="rejected">Rejected</button>
+                <button class="filter-btn active" data-filter="all">All Locations</button>
+                <button class="filter-btn" data-filter="approved">Approved Locations</button>
             </div>
         </div>
 
@@ -317,14 +406,16 @@
             <a href="submit.html" style="margin-left: 10px;">Submit New Application</a>
         </div>
     </div>
+    </div>
 
     <script>
+        let allLocations = [];
         let allUsers = [];
         let currentFilter = 'all';
         let searchTerm = '';
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadUsers();
+            loadData();
             setupEventListeners();
         });
 
@@ -334,74 +425,137 @@
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     currentFilter = this.dataset.filter;
-                    displayUsers();
+                    displayLocations();
                 });
             });
 
             document.getElementById('searchBox').addEventListener('input', function() {
                 searchTerm = this.value.toLowerCase();
-                displayUsers();
+                displayLocations();
             });
         }
 
-        async function loadUsers() {
+        async function loadData() {
             try {
-                const response = await fetch('/users');
-                allUsers = await response.json();
+                // Load locations and users
+                const [locationsResponse, usersResponse] = await Promise.all([
+                    fetch('/api/admin/locations'),
+                    fetch('/api/admin/users')
+                ]);
+
+                const locationsResult = await locationsResponse.json();
+                const usersResult = await usersResponse.json();
+
+                if (locationsResult.success) {
+                    allLocations = locationsResult.data;
+                }
+
+                if (usersResult.success) {
+                    allUsers = usersResult.data;
+                }
+
                 updateStats();
-                displayUsers();
+                displayLocations();
             } catch (error) {
-                showMessage('Error loading users: ' + error.message, 'error');
+                showMessage('Error loading data: ' + error.message, 'error');
             }
         }
 
         function updateStats() {
-            const total = allUsers.length;
-            const pending = allUsers.filter(user => user.status === 'pending').length;
-            const approved = allUsers.filter(user => user.status === 'approved').length;
-            const rejected = allUsers.filter(user => user.status === 'rejected').length;
+            const totalLocations = allLocations.length;
+            const totalUsers = allUsers.length;
 
-            document.getElementById('totalUsers').textContent = total;
-            document.getElementById('pendingUsers').textContent = pending;
-            document.getElementById('approvedUsers').textContent = approved;
-            document.getElementById('rejectedUsers').textContent = rejected;
+            document.getElementById('totalLocations').textContent = totalLocations;
+            document.getElementById('totalUsers').textContent = totalUsers;
         }
 
-        function displayUsers() {
+        function displayLocations() {
             const container = document.getElementById('usersContainer');
-            let filteredUsers = allUsers;
+            let filteredLocations = allLocations;
 
-            if (currentFilter !== 'all') {
-                filteredUsers = filteredUsers.filter(user => user.status === currentFilter);
+            if (currentFilter === 'approved') {
+                filteredLocations = filteredLocations.filter(location => location.status === 'approved');
             }
 
             if (searchTerm) {
-                filteredUsers = filteredUsers.filter(user => 
-                    user.fullName.toLowerCase().includes(searchTerm) ||
-                    user.email.toLowerCase().includes(searchTerm) ||
-                    user.status.toLowerCase().includes(searchTerm)
+                filteredLocations = filteredLocations.filter(location => 
+                    location.name.toLowerCase().includes(searchTerm) ||
+                    location.description.toLowerCase().includes(searchTerm)
                 );
             }
 
-            if (filteredUsers.length === 0) {
-                container.innerHTML = '<div class="loading">No users found</div>';
+            if (filteredLocations.length === 0) {
+                container.innerHTML = '<div class="loading">No locations found</div>';
                 return;
             }
 
-            container.innerHTML = filteredUsers.map(user => createUserCard(user)).join('');
+            container.innerHTML = filteredLocations.map(location => createLocationCard(location)).join('');
         }
 
-        function createUserCard(user) {
-            const imageUrl = user.imagePath ? `/uploads/${user.imagePath.split('/').pop()}` : '/placeholder.jpg';
-            const statusClass = `status-${user.status}`;
-            const cardClass = `user-card ${user.status}`;
+        function createLocationCard(location) {
+            const locationUsers = allUsers.filter(user => {
+                // Handle both populated and non-populated locationId
+                const userLocationId = typeof user.locationId === 'object' ? user.locationId._id : user.locationId;
+                return userLocationId === location._id;
+            });
+            
+            const statusClass = `status-${location.status}`;
+            const cardClass = `user-card ${location.status}`;
             
             return `
                 <div class="${cardClass}">
-                    <div class="status-badge ${statusClass}">${user.status}</div>
-                    <img src="${imageUrl}" alt="User Image" class="user-image" onerror="this.src='/placeholder.jpg'">
+                    <div class="status-badge ${statusClass}">${location.status}</div>
+                    <div class="location-image">
+                        ${location.imageUrl ? `<img src="${location.imageUrl}" alt="${location.name}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px;">` : '<div style="width: 100%; height: 150px; background: #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center;">No Image</div>'}
+                    </div>
                     <div class="user-info">
-                        <h3>${user.fullName}</h3>
+                        <h3>${location.name}</h3>
+                        <div class="user-details">
+                            <div class="user-detail">
+                                <span>Description:</span>
+                                <span>${location.description}</span>
+                            </div>
+                            <div class="user-detail">
+                                <span>Total Users:</span>
+                                <span>${locationUsers.length}</span>
+                            </div>
+                            <div class="user-detail">
+                                <span>Submitted:</span>
+                                <span>${new Date(location.submittedAt).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons" style="margin-top: 15px;">
+                            <button class="btn btn-view" onclick="toggleUsers('${location._id}')" style="
+                                background: #2196F3;
+                                color: white;
+                                border: none;
+                                padding: 8px 16px;
+                                border-radius: 5px;
+                                cursor: pointer;
+                                font-weight: bold;
+                                width: 100%;
+                            ">
+                                👥 View Users (${locationUsers.length})
+                            </button>
+                        </div>
+                        
+                        <div id="users-${location._id}" style="display: none; margin-top: 15px;" class="users-section">
+                            ${locationUsers.length > 0 ? `
+                                <h4 style="color: #2F4F2F; margin-bottom: 10px;">Users:</h4>
+                                ${locationUsers.map(user => createUserCard(user)).join('')}
+                            ` : '<p style="color: #666; text-align: center;">No users found for this location</p>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createUserCard(user) {
+            return `
+                <div class="user-card" style="margin: 10px 0; padding: 15px; border-left: 3px solid #2F4F2F;">
+                    <div class="user-info">
+                        <h4 style="color: #2F4F2F; margin-bottom: 8px;">${user.fullName}</h4>
                         <div class="user-details">
                             <div class="user-detail">
                                 <span>Age:</span>
@@ -416,23 +570,26 @@
                                 <span>${user.phone}</span>
                             </div>
                             <div class="user-detail">
-                                <span>Status:</span>
-                                <span>${user.status}</span>
+                                <span>Joined:</span>
+                                <span>${new Date(user.joinedAt).toLocaleDateString()}</span>
                             </div>
-                            <div class="user-detail">
-                                <span>Submitted:</span>
-                                <span>${new Date(user.submittedAt).toLocaleDateString()}</span>
-                            </div>
-                            ${user.approvedAt ? `
-                                <div class="user-detail">
-                                    <span>Approved:</span>
-                                    <span>${new Date(user.approvedAt).toLocaleDateString()}</span>
-                                </div>
-                            ` : ''}
                         </div>
                     </div>
                 </div>
             `;
+        }
+
+        function toggleUsers(locationId) {
+            const usersSection = document.getElementById(`users-${locationId}`);
+            const button = event.target;
+            
+            if (usersSection.style.display === 'none' || usersSection.style.display === '') {
+                usersSection.style.display = 'block';
+                button.innerHTML = button.innerHTML.replace('View Users', 'Hide Users');
+            } else {
+                usersSection.style.display = 'none';
+                button.innerHTML = button.innerHTML.replace('Hide Users', 'View Users');
+            }
         }
 
         function showMessage(message, type) {

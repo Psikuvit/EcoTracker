@@ -237,7 +237,10 @@
     <div class="container">
         <div class="header">
             <h1>🌱 Submit Your Application</h1>
-            <p>Join our waste management community</p>
+            <p>Join this location's waste management team</p>
+            <div id="locationInfo" style="margin-top: 15px; padding: 10px; background: rgba(47, 79, 47, 0.1); border-radius: 8px; display: none;">
+                <strong>Location: </strong><span id="locationName">Loading...</span>
+            </div>
         </div>
 
         <div class="form-container">
@@ -359,8 +362,45 @@
             reader.readAsDataURL(file);
         }
 
+        // Load location information when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const locationId = sessionStorage.getItem('selectedLocationId');
+            if (!locationId) {
+                showMessage('No location selected. Please go back and select a location.', 'error');
+                return;
+            }
+
+            // Load location details
+            loadLocationDetails(locationId);
+        });
+
+        async function loadLocationDetails(locationId) {
+            try {
+                const response = await fetch(`/api/locations/approved`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const location = result.data.find(loc => loc._id === locationId);
+                    if (location) {
+                        document.getElementById('locationName').textContent = location.name;
+                        document.getElementById('locationInfo').style.display = 'block';
+                    } else {
+                        showMessage('Location not found or not approved.', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading location details:', error);
+            }
+        }
+
         submitForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const locationId = sessionStorage.getItem('selectedLocationId');
+            if (!locationId) {
+                showMessage('No location selected. Please go back and select a location.', 'error');
+                return;
+            }
 
             if (!selectedFile) {
                 showMessage('Please select an image.', 'error');
@@ -378,8 +418,9 @@
                 formData.append('email', document.getElementById('email').value);
                 formData.append('phone', document.getElementById('phone').value);
                 formData.append('address', document.getElementById('address').value);
+                formData.append('locationId', locationId);
 
-                const response = await fetch('/submit-user', {
+                const response = await fetch('/api/submit-user', {
                     method: 'POST',
                     body: formData
                 });
@@ -387,13 +428,14 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    showMessage('Application submitted successfully! Your application is now pending approval.', 'success');
+                    showMessage('Successfully joined the location!', 'success');
                     submitForm.reset();
                     imagePreview.style.display = 'none';
                     imageUpload.style.display = 'block';
                     selectedFile = null;
+                    sessionStorage.removeItem('selectedLocationId');
                 } else {
-                    showMessage('Error submitting application: ' + result.error, 'error');
+                    showMessage('Error joining location: ' + result.error, 'error');
                 }
             } catch (error) {
                 showMessage('Error submitting application: ' + error.message, 'error');

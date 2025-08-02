@@ -316,16 +316,115 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Admin Key Access -->
+    <div id="keyInputContainer" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #2E7D32, #66BB6A);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    ">
+        <div style="
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        ">
+            <h2 style="color: #2E7D32; margin-bottom: 1rem;">🔐 Admin Access</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">Enter the admin access key to continue</p>
+            <input type="password" id="adminKeyInput" placeholder="Enter admin key" style="
+                width: 100%;
+                padding: 0.75rem;
+                border: 2px solid #ddd;
+                border-radius: 5px;
+                font-size: 1rem;
+                margin-bottom: 1rem;
+                box-sizing: border-box;
+            ">
+            <button onclick="validateKey()" style="
+                background: #2E7D32;
+                color: white;
+                border: none;
+                padding: 0.75rem 2rem;
+                border-radius: 5px;
+                font-size: 1rem;
+                cursor: pointer;
+                width: 100%;
+            ">Access Admin Dashboard</button>
+            <div id="errorMessage" style="
+                color: #d32f2f;
+                margin-top: 1rem;
+                display: none;
+            ">Invalid access key. Please try again.</div>
+        </div>
+    </div>
+
+    <script>
+        async function validateKey() {
+            const key = document.getElementById('adminKeyInput').value;
+            const errorDiv = document.getElementById('errorMessage');
+            
+            if (!key) {
+                errorDiv.textContent = 'Please enter an access key';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch('/validate-admin-key', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ key: key })
+                });
+
+                const result = await response.json();
+
+                if (result.valid) {
+                    // Hide the key input container
+                    document.getElementById('keyInputContainer').style.display = 'none';
+                    // Show the admin content
+                    document.getElementById('adminContent').style.display = 'block';
+                    loadUsers();
+                } else {
+                    errorDiv.textContent = 'Invalid access key. Please try again.';
+                    errorDiv.style.display = 'block';
+                    document.getElementById('adminKeyInput').value = '';
+                }
+            } catch (error) {
+                console.error('Error validating key:', error);
+                errorDiv.textContent = 'Error validating key. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('adminKeyInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                validateKey();
+            }
+        });
+    </script>
+
+    <div class="container" id="adminContent" style="display: none;">
         <div class="header">
             <h1>🌱 Admin Dashboard</h1>
-            <p>Manage user submissions and approvals</p>
+            <p>Manage location submissions and approvals</p>
         </div>
 
         <div class="stats" id="stats">
             <div class="stat-card">
                 <div class="stat-number" id="totalUsers">0</div>
-                <div class="stat-label">Total Users</div>
+                <div class="stat-label">Total Locations</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="pendingUsers">0</div>
@@ -343,7 +442,7 @@
 
         <div class="filters">
             <div class="filter-buttons">
-                <button class="filter-btn active" data-filter="all">All Users</button>
+                <button class="filter-btn active" data-filter="all">All Locations</button>
                 <button class="filter-btn" data-filter="pending">Pending</button>
                 <button class="filter-btn" data-filter="approved">Approved</button>
                 <button class="filter-btn" data-filter="rejected">Rejected</button>
@@ -357,7 +456,8 @@
 
         <div class="back-link" style="text-align: center; margin-top: 30px;">
             <a href="users.html" style="color: #2F4F2F; text-decoration: none; font-weight: bold; padding: 10px 20px; border: 2px solid #2F4F2F; border-radius: 25px; transition: all 0.3s ease; margin-right: 10px;">View All Users</a>
-            <a href="submit.html" style="color: #2F4F2F; text-decoration: none; font-weight: bold; padding: 10px 20px; border: 2px solid #2F4F2F; border-radius: 25px; transition: all 0.3s ease;">Submit New Application</a>
+            <a href="submit.html" style="color: #2F4F2F; text-decoration: none; font-weight: bold; padding: 10px 20px; border: 2px solid #2F4F2F; border-radius: 25px; transition: all 0.3s ease; margin-right: 10px;">Submit New Application</a>
+            <button onclick="logout()" style="color: white; background: #dc2626; text-decoration: none; font-weight: bold; padding: 10px 20px; border: 2px solid #dc2626; border-radius: 25px; transition: all 0.3s ease; cursor: pointer;">🚪 Logout</button>
         </div>
     </div>
 
@@ -373,11 +473,10 @@
     </div>
 
     <script>
-        let allUsers = [];
+        let allRequests = [];
         let currentFilter = 'all';
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadUsers();
             setupEventListeners();
         });
 
@@ -405,20 +504,21 @@
 
         async function loadUsers() {
             try {
-                const response = await fetch('/users');
-                allUsers = await response.json();
+                const response = await fetch('/api/admin/locations');
+                const result = await response.json();
+                allRequests = result.data || [];
                 updateStats();
                 displayUsers();
             } catch (error) {
-                showMessage('Error loading users: ' + error.message, 'error');
+                showMessage('Error loading locations: ' + error.message, 'error');
             }
         }
 
         function updateStats() {
-            const total = allUsers.length;
-            const pending = allUsers.filter(user => user.status === 'pending').length;
-            const approved = allUsers.filter(user => user.status === 'approved').length;
-            const rejected = allUsers.filter(user => user.status === 'rejected').length;
+            const total = allRequests.length;
+            const pending = allRequests.filter(request => request.status === 'pending').length;
+            const approved = allRequests.filter(request => request.status === 'approved').length;
+            const rejected = allRequests.filter(request => request.status === 'rejected').length;
 
             document.getElementById('totalUsers').textContent = total;
             document.getElementById('pendingUsers').textContent = pending;
@@ -428,54 +528,50 @@
 
         function displayUsers() {
             const container = document.getElementById('usersContainer');
-            let filteredUsers = allUsers;
+            let filteredRequests = allRequests;
 
             if (currentFilter !== 'all') {
-                filteredUsers = allUsers.filter(user => user.status === currentFilter);
+                filteredRequests = allRequests.filter(request => request.status === currentFilter);
             }
 
-            if (filteredUsers.length === 0) {
-                container.innerHTML = '<div class="loading">No users found</div>';
+            if (filteredRequests.length === 0) {
+                container.innerHTML = '<div class="loading">No locations found</div>';
                 return;
             }
 
-            container.innerHTML = filteredUsers.map(user => createUserCard(user)).join('');
+            container.innerHTML = filteredRequests.map(request => createUserCard(request)).join('');
         }
 
-        function createUserCard(user) {
-            const imageUrl = user.imagePath ? `/uploads/${user.imagePath.split('/').pop()}` : '/placeholder.jpg';
-            const statusClass = `status-${user.status}`;
-            const cardClass = `user-card ${user.status}`;
+        function createUserCard(location) {
+            const imageUrl = location.imageUrl || location.imagePath;
+            const statusClass = `status-${location.status}`;
+            const cardClass = `user-card ${location.status}`;
             
             return `
                 <div class="${cardClass}">
-                    <div class="status-badge ${statusClass}">${user.status}</div>
-                    <img src="${imageUrl}" alt="User Image" class="user-image" onerror="this.src='/placeholder.jpg'">
+                    <div class="status-badge ${statusClass}">${location.status}</div>
+                    <img src="${imageUrl}" alt="Location Image" class="user-image" onerror="this.src='/placeholder.jpg'">
                     <div class="user-info">
-                        <h3>${user.fullName}</h3>
+                        <h3>${location.name}</h3>
                         <div class="user-details">
                             <div class="user-detail">
-                                <span>Age:</span>
-                                <span>${user.age}</span>
+                                <span>Link:</span>
+                                <span><a href="${location.link}" target="_blank">${location.link.substring(0, 30)}...</a></span>
                             </div>
                             <div class="user-detail">
-                                <span>Email:</span>
-                                <span>${user.email}</span>
-                            </div>
-                            <div class="user-detail">
-                                <span>Phone:</span>
-                                <span>${user.phone}</span>
+                                <span>Description:</span>
+                                <span>${location.description.substring(0, 50)}${location.description.length > 50 ? '...' : ''}</span>
                             </div>
                             <div class="user-detail">
                                 <span>Submitted:</span>
-                                <span>${new Date(user.submittedAt).toLocaleDateString()}</span>
+                                <span>${new Date(location.submittedAt).toLocaleDateString()}</span>
                             </div>
                         </div>
                         <div class="action-buttons">
-                            <button class="btn btn-view" onclick="viewUser('${user._id}')">View</button>
-                            ${user.status === 'pending' ? `
-                                <button class="btn btn-approve" onclick="approveUser('${user._id}')">Approve</button>
-                                <button class="btn btn-reject" onclick="rejectUser('${user._id}')">Reject</button>
+                            <button class="btn btn-view" onclick="viewUser('${location._id}')">View</button>
+                            ${location.status === 'pending' ? `
+                                <button class="btn btn-approve" onclick="approveUser('${location._id}')">Approve</button>
+                                <button class="btn btn-reject" onclick="rejectUser('${location._id}')">Reject</button>
                             ` : ''}
                         </div>
                     </div>
@@ -483,60 +579,56 @@
             `;
         }
 
-        async function viewUser(userId) {
+        async function viewUser(locationId) {
             try {
-                const response = await fetch(`/users/${userId}`);
-                const user = await response.json();
+                // Find the location in our loaded data
+                const location = allRequests.find(loc => loc._id === locationId);
+                if (!location) {
+                    showMessage('Location not found', 'error');
+                    return;
+                }
                 
                 const modal = document.getElementById('userModal');
                 const modalImage = document.getElementById('modalImage');
                 const modalDetails = document.getElementById('modalDetails');
                 const modalActions = document.getElementById('modalActions');
                 
-                const imageUrl = user.imagePath ? `/uploads/${user.imagePath.split('/').pop()}` : '/placeholder.jpg';
+                const imageUrl = location.imageUrl || location.imagePath;
                 modalImage.src = imageUrl;
                 
                 modalDetails.innerHTML = `
                     <div class="user-detail">
-                        <span>Full Name:</span>
-                        <span>${user.fullName}</span>
+                        <span>Name:</span>
+                        <span>${location.name}</span>
                     </div>
                     <div class="user-detail">
-                        <span>Age:</span>
-                        <span>${user.age}</span>
+                        <span>Link:</span>
+                        <span><a href="${location.link}" target="_blank">${location.link}</a></span>
                     </div>
                     <div class="user-detail">
-                        <span>Email:</span>
-                        <span>${user.email}</span>
-                    </div>
-                    <div class="user-detail">
-                        <span>Phone:</span>
-                        <span>${user.phone}</span>
-                    </div>
-                    <div class="user-detail">
-                        <span>Address:</span>
-                        <span>${user.address}</span>
+                        <span>Description:</span>
+                        <span>${location.description}</span>
                     </div>
                     <div class="user-detail">
                         <span>Status:</span>
-                        <span>${user.status}</span>
+                        <span>${location.status}</span>
                     </div>
                     <div class="user-detail">
                         <span>Submitted:</span>
-                        <span>${new Date(user.submittedAt).toLocaleString()}</span>
+                        <span>${new Date(location.submittedAt).toLocaleString()}</span>
                     </div>
-                    ${user.approvedAt ? `
+                    ${location.processedAt ? `
                         <div class="user-detail">
-                            <span>Approved:</span>
-                            <span>${new Date(user.approvedAt).toLocaleString()}</span>
+                            <span>Processed:</span>
+                            <span>${new Date(location.processedAt).toLocaleString()}</span>
                         </div>
                     ` : ''}
                 `;
                 
-                if (user.status === 'pending') {
+                if (location.status === 'pending') {
                     modalActions.innerHTML = `
-                        <button class="btn btn-approve" onclick="approveUser('${user._id}')">Approve</button>
-                        <button class="btn btn-reject" onclick="rejectUser('${user._id}')">Reject</button>
+                        <button class="btn btn-approve" onclick="approveUser('${location._id}')">Approve</button>
+                        <button class="btn btn-reject" onclick="rejectUser('${location._id}')">Reject</button>
                     `;
                 } else {
                     modalActions.innerHTML = '';
@@ -544,63 +636,63 @@
                 
                 modal.style.display = 'block';
             } catch (error) {
-                showMessage('Error loading user details: ' + error.message, 'error');
+                showMessage('Error loading location details: ' + error.message, 'error');
             }
         }
 
-        async function approveUser(userId) {
-            if (!confirm('Are you sure you want to approve this user?')) return;
+        async function approveUser(locationId) {
+            if (!confirm('Are you sure you want to approve this location?')) return;
             
             try {
-                const response = await fetch(`/users/${userId}/approve`, {
-                    method: 'PUT',
+                const response = await fetch(`/api/admin/approve/${locationId}`, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        approvedBy: 'admin'
+                        adminId: 'admin'
                     })
                 });
                 
                 if (response.ok) {
-                    showMessage('User approved successfully!', 'success');
+                    showMessage('Location approved successfully!', 'success');
                     loadUsers();
                     document.getElementById('userModal').style.display = 'none';
                 } else {
                     const error = await response.json();
-                    showMessage('Error approving user: ' + error.error, 'error');
+                    showMessage('Error approving location: ' + error.error, 'error');
                 }
             } catch (error) {
-                showMessage('Error approving user: ' + error.message, 'error');
+                showMessage('Error approving location: ' + error.message, 'error');
             }
         }
 
-        async function rejectUser(userId) {
+        async function rejectUser(locationId) {
             const reason = prompt('Please enter a reason for rejection:');
             if (!reason) return;
             
             try {
-                const response = await fetch(`/users/${userId}/reject`, {
-                    method: 'PUT',
+                const response = await fetch(`/api/admin/reject/${locationId}`, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        rejectedBy: 'admin',
+                        adminId: 'admin',
                         reason: reason
                     })
                 });
                 
                 if (response.ok) {
-                    showMessage('User rejected successfully!', 'success');
+                    showMessage('Location rejected successfully!', 'success');
                     loadUsers();
                     document.getElementById('userModal').style.display = 'none';
                 } else {
                     const error = await response.json();
-                    showMessage('Error rejecting user: ' + error.error, 'error');
+                    showMessage('Error rejecting location: ' + error.error, 'error');
                 }
             } catch (error) {
-                showMessage('Error rejecting user: ' + error.message, 'error');
+                showMessage('Error rejecting location: ' + error.message, 'error');
             }
         }
 
@@ -612,6 +704,18 @@
             setTimeout(() => {
                 messageDiv.innerHTML = '';
             }, 5000);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear session data
+                sessionStorage.removeItem('adminKey');
+                sessionStorage.removeItem('adminKeyValidated');
+                sessionStorage.removeItem('adminKeyTimestamp');
+                
+                // Redirect to login page
+                window.location.href = 'admin-login.html';
+            }
         }
     </script>
 </body>
