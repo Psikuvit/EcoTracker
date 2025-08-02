@@ -1,32 +1,21 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/validate-admin-key",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/uploads/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/$1"
-    }
-  ],
   "functions": {
     "api/index.js": {
       "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/validate-admin-key",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/uploads/(.*)",
+      "destination": "/api/index.js"
+    }
+  ]
 }
