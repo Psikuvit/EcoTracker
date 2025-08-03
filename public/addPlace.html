@@ -345,11 +345,72 @@
         #age::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;}
+        .error-message, .success-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 350px;
+            opacity: 0;
+        }
+        .error-message {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            border-left: 4px solid #ff4757;
+        }
+        .success-message {
+            background: linear-gradient(135deg, #51cf66, #40c057);
+            color: white;
+            border-left: 4px solid #2f9e44;
+        }
+        .error-message.show, .success-message.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .error-message::before {
+            content: "⚠️";
+            font-size: 16px;
+        }
+        .success-message::before {    
+            content: "✅";
+            font-size: 16px;
+        }
+        .message-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s ease;
+        }
+        .message-close:hover {
+            background: rgba(255,255,255,0.2);
+        } 
 
  
     </style>
 </head>
 <body>
+    <div class="error-message"></div>
+    <div class="success-message"></div>
     <div class="form-container">
         <h1 class="form-title">Submit Location</h1>
         
@@ -431,6 +492,32 @@
                 reader.readAsDataURL(file);
             }
         }
+        function showError(message) {            
+            const errorDiv = document.querySelector('.error-message');
+            errorDiv.innerHTML = `
+            ${message}
+            <button class="message-close" onclick="hideMessage('.error-message')">&times;</button>
+            `;
+            errorDiv.classList.add('show');
+            setTimeout(() => {
+                hideMessage('.error-message');
+            }, 5000);
+        }
+        function showSuccess(message) {
+            const successDiv = document.querySelector('.success-message');
+            successDiv.innerHTML = `
+            ${message}
+            <button class="message-close" onclick="hideMessage('.success-message')">&times;</button>
+            `;
+            successDiv.classList.add('show');
+            setTimeout(() => {
+                hideMessage('.success-message');}, 4000);
+            
+        }
+        function hideMessage(selector) {
+            const messageDiv = document.querySelector(selector);
+            messageDiv.classList.remove('show');
+        }
 
         async function handleSubmit(e) {
             e.preventDefault();
@@ -445,6 +532,7 @@
                 alert('Please fill in all fields and upload an image');
                 return;
             }
+            showSuccess('Submitting location...');
 
             formData.append('name', name);
             formData.append('description', description);
