@@ -619,22 +619,11 @@
     transform: scale(1.05);
 }
 .team-name {
-    font-family: 'serif';
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #2d3748;
-    text-align: center;
-    line-height: 1.2;
-    margin-top: 12px;
-    margin-bottom: 8px;
-    letter-spacing: -0.025em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;  
 }
-.team-name br {
-    display: block;    
-    content: "";       
-    margin-top: -4px;  
-}
-
 /* Responsive font sizes */
 @media (max-width: 768px) {
     .team-name {
@@ -939,7 +928,10 @@
             <h2>OUR TEAM</h2>
             <div class="team-grid">
                 <div class="team-member">
-                    <div class="team-name" style="line-height: 2px;">Salim<br>ladjdel</div>
+                    <div class="team-name" style="line-height: 2px;">
+                            <span>Salim</span>
+                            <span>Ladjdel</span>
+                    </div>
                     <div class="team-avatar"><img  src="salim.jpg" alt=""></div>
                     <div class="social-icons">
                         <a class="social-icon" href="https://github.com/Salim-Ladj" target="_blank">
@@ -952,7 +944,10 @@
                     </div>
                 </div>
                 <div class="team-member">
-                     <div class="team-name" style="line-height: 2px;">Ali<br>Abid</div>
+                     <div class="team-name" style="line-height: 2px;">
+                             <span>Ali</span>
+                            <span>Abid</span>
+                     </div>
                     
                     <div class="team-avatar"><img  src="ali.jpg" alt=""></div>
                     <div class="social-icons">
