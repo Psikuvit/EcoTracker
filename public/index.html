@@ -618,6 +618,39 @@
 .team-avatar img:hover {
     transform: scale(1.05);
 }
+        .team-name {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2d3748;
+    text-align: center;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    letter-spacing: -0.025em;
+}
+
+/* Responsive font sizes */
+@media (max-width: 768px) {
+    .team-name {
+        font-size: 1.1rem;
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .team-name {
+        font-size: 1rem;
+        margin-top: 8px;
+    }
+}
+
+/* Optional hover effect */
+.team-name:hover {
+    color: #4a5568;
+    transition: color 0.2s ease;
+}
+        
        
 
         @media (max-width: 768px) {
@@ -941,7 +974,7 @@
                     </div>
                 </div>
                 <div class="team-member">
-                     <div class="team-name">Mebarki Yacine</div>
+                     <div class="team-name">Yacine Mebarki</div>
                     
                     <div class="team-avatar"><img  src="yacine.jpg" alt=""></div>
                     <div class="social-icons">
