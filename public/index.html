@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="logo-removebg-preview.png" type="image/png">
-    <title>Eco team - Waste Management</title>
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
+    <title>Lager - Waste Management</title>
     <style>
         * {
             margin: 0;
@@ -561,19 +560,23 @@
         .social-icons {
             display: flex;
             justify-content: center;
-            gap: 8px;
+            gap: 12px;
             margin-top: 15px;
         }
 
-        .social-icon {
-            width: 20px;
-            height: 20px;
-            background: #666;
-            border-radius: 2px;
-            display: inline-block;
+        .social-icon i {
+            font-size: 24px;
+            transition: transform 0.3s;
         }
 
-        /* Bottom Trees */
+        .social-icon:nth-child(1) i { color: #c0c0c0; }  /* GitHub gris clair */
+        .social-icon:nth-child(2) i { color: #76f4c2; }  /* Email blanc */
+        .social-icon:nth-child(3) i { color: #5865F2; }  /* Discord bleu */
+
+        .social-icon i:hover {
+            transform: scale(1.3);
+        }
+
         .bottom-trees {
             display: flex;
             justify-content: space-between;
@@ -821,9 +824,6 @@
                 <div class="faq-left">
                     <h2>FAQs</h2>
                     <p>Discover how our latest waste management<br>digital solutions guide, being<br>environmentally conscious</p>
-                    <a href="developerdznew@gmail.com">
-                        <button class="contact-btn">Contact</button>
-                    </a>
 
                 </div>
                 <div class="faq-right">
@@ -859,39 +859,59 @@
             <h2>OUR TEAM</h2>
             <div class="team-grid">
                 <div class="team-member">
-                    <div class="team-avatar"></div>
+                    <div class="team-avatar"><img style="width: 4vw; height: 4vw; border-radius: 100%;" src="salim.png" alt=""></div>
                     <div class="social-icons">
-                        <span class="social-icon"></span>
-                        <span class="social-icon"></span>
-                        <span class="social-icon"></span>
-                        <span class="social-icon"></span>
+                        <a class="social-icon" href="https://github.com/Salim-Ladj" target="_blank">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a class="social-icon" href="mailto:ladjsalim2@gmail.com">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                        <span class="social-icon">
+                            <i class="fab fa-discord"></i>
+                        </span>
                     </div>
                 </div>
                 <div class="team-member">
-                    <div class="team-avatar"></div>
+                    <div class="team-avatar"><img style="width: 4vw; height: 4vw; border-radius: 100%;" src="ali.png" alt=""></div>
                     <div class="social-icons">
-                        <span class="social-icon"></span>
-                        <span class="social-icon"></span>
-                        <span class="social-icon"></span>
-                        <span class="social-icon"></span>
+                        <a class="social-icon" href="//github.com/AliAbid31" target="_blank">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a class="social-icon">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                        <a class="social-icon">
+                            <i class="fab fa-discord"></i>
+                        </a>
                     </div>
                 </div>
                 <div class="team-member">
-                    <div class="team-avatar"></div>
+                    <div class="team-avatar"><img style="width: 4vw; height: 4vw; border-radius: 100%;" src="nacer.png" alt=""></div>
                     <div class="social-icons">
-                        <span class="social-icon"></span>
-                        <span class="social-icon"></span>
-                        <span class="social-icon"></span>
-                        <span class="social-icon"></span>
+                        <a class="social-icon" href="https://github.com/Psikuvit" target="_blank">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a class="social-icon">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                        <a class="social-icon">
+                            <i class="fab fa-discord"></i>
+                        </a>
                     </div>
                 </div>
                 <div class="team-member">
-                    <div class="team-avatar"></div>
+                    <div class="team-avatar"><img style="width: 4vw; height: 4vw; border-radius: 100%;" src="yacine.png" alt=""></div>
                     <div class="social-icons">
-                        <span class="social-icon"></span>
-                        <span class="social-icon"></span>
-                        <span class="social-icon"></span>
-                        <span class="social-icon"></span>
+                        <a class="social-icon" href="https://github.com/yacinemebarki" target="_blank">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a class="social-icon">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                        <a class="social-icon">
+                            <i class="fab fa-discord"></i>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -1048,3 +1068,4 @@
     </script>
 </body>
 </html>
+
